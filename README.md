@@ -49,12 +49,24 @@ change between runs and need not increase monotonically with epsilon. This is
 a synthetic-data learning experiment: real private labels, test-set metrics,
 and model selection would require additional privacy analysis.
 
+## Tests
+
+```bash
+python -m unittest -v
+```
+
+Three tests check that clipping handles zero and signed vectors without changing
+the input, that every repeated private fit contributes to the total budget, and
+that separate evaluations do not accidentally share accounting state. They also
+check run coverage and valid accuracy values without depending on random scores.
+These checks catch implementation mistakes; passing them does not prove privacy.
+
 ## Build sequence
 
 1. Set up the project and dependencies (done).
 2. Generate synthetic data and train a non-private baseline (done).
-3. Compare private models across privacy budgets (current step).
-4. Test feature clipping and privacy accounting.
+3. Compare private models across privacy budgets (done).
+4. Test feature clipping and privacy accounting (current step).
 5. Save results and explain the accuracy tradeoff.
 
 This experiment evaluates utility; an accuracy curve cannot prove differential
