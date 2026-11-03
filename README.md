@@ -4,7 +4,7 @@ How does differential privacy affect a classifier's accuracy?
 
 This small learning project compares ordinary logistic regression with
 private logistic regression on synthetic binary classification data.
-We will build it in short, runnable steps and keep the code concise.
+The commit history builds it in five short, runnable steps.
 
 ## Setup
 
@@ -16,6 +16,28 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 python experiment.py
 ```
+
+The script prints accuracy and saves each run to `results/runs.csv` and the
+comparison chart to `results/accuracy.png`. Rerunning replaces those two files.
+
+## Results
+
+![Privacy versus accuracy](results/accuracy.png)
+
+The committed run produced these mean test accuracies over ten fits per epsilon:
+
+| Epsilon | Mean accuracy | Sample standard deviation |
+| --- | --- | --- |
+| 0.1 | 55.4% | 5.6 percentage points |
+| 0.3 | 62.1% | 7.8 percentage points |
+| 1 | 71.1% | 5.3 percentage points |
+| 3 | 78.5% | 0.8 percentage points |
+| 10 | 78.7% | 0.4 percentage points |
+
+The non-private baseline scored **78.6%**. In this run, stronger privacy cost
+accuracy, while epsilon 3 and 10 approached the baseline. Error bars summarize
+noise variation on one fixed dataset, not uncertainty across datasets. The table
+describes the committed CSV; a fresh run will give different numbers.
 
 ## Baseline
 
@@ -46,8 +68,11 @@ of any individual fit. The ordinary baseline is not covered by this accountant.
 
 Only the synthetic data and split are seeded; privacy noise is not, so scores
 change between runs and need not increase monotonically with epsilon. This is
-a synthetic-data learning experiment: real private labels, test-set metrics,
-and model selection would require additional privacy analysis.
+a synthetic-data learning experiment with a public binary label domain. For real
+private data, label discovery, splitting, test-set metrics, model selection, and
+repeated releases require additional privacy analysis. Do not publish ordinary
+accuracy from a private test set without protection. This is not a deployment
+pipeline for sensitive data.
 
 ## Tests
 
@@ -66,8 +91,20 @@ These checks catch implementation mistakes; passing them does not prove privacy.
 1. Set up the project and dependencies (done).
 2. Generate synthetic data and train a non-private baseline (done).
 3. Compare private models across privacy budgets (done).
-4. Test feature clipping and privacy accounting (current step).
-5. Save results and explain the accuracy tradeoff.
+4. Test feature clipping and privacy accounting (done).
+5. Save results and explain the accuracy tradeoff (done).
 
 This experiment evaluates utility; an accuracy curve cannot prove differential
-privacy. All examples will use synthetic, non-sensitive data.
+privacy. The guarantee depends on the mechanism and its assumptions. All
+examples use synthetic, non-sensitive data.
+
+## Try next
+
+Change `n_samples` in `dataset()` to 300 and then 3000 while keeping other
+settings fixed. Does having more training data reduce the accuracy cost of
+privacy at the same epsilon?
+
+## References
+
+- [diffprivlib privacy accountant](https://diffprivlib.readthedocs.io/en/latest/modules/accountant.html)
+- [Differentially Private Empirical Risk Minimization](https://jmlr.org/papers/v12/chaudhuri11a.html)

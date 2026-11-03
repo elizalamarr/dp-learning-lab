@@ -1,5 +1,11 @@
 """Compare private and non-private classifiers on synthetic data."""
 
+import csv
+from pathlib import Path
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import numpy as np
 from diffprivlib.accountant import BudgetAccountant
 from diffprivlib.models import LogisticRegression as PrivateLogisticRegression
@@ -43,12 +49,29 @@ def evaluate(epsilons=EPSILONS, repeats=REPEATS):
 
 def main():
     baseline, rows, budget = evaluate()
+    output = Path(__file__).parent / "results"
+    output.mkdir(exist_ok=True)
+    with (output / "runs.csv").open("w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=rows[0].keys(), lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    means, stds = [], []
     print(f"Non-private accuracy: {baseline:.3f}")
     for epsilon in EPSILONS:
         scores = [row["accuracy"] for row in rows if row["epsilon"] == epsilon]
-        print(f"epsilon={epsilon:4g}: {np.mean(scores):.3f} "
-              f"± {np.std(scores, ddof=1):.3f} (sample SD)")
+        means.append(np.mean(scores))
+        stds.append(np.std(scores, ddof=1))
+        print(f"epsilon={epsilon:4g}: {means[-1]:.3f} ± {stds[-1]:.3f} (sample SD)")
     print(f"Composed budget across all private fits: {budget}")
+    fig, ax = plt.subplots(figsize=(6, 4), layout="constrained")
+    ax.errorbar(EPSILONS, means, yerr=stds, marker="o", capsize=4,
+                label="Private: mean ± 1 sample SD")
+    ax.axhline(baseline, color="gray", linestyle="--", label="Non-private")
+    ax.set(xscale="log", xlabel="Epsilon (smaller = stronger privacy)",
+           ylabel="Test accuracy", ylim=(0, 1), title="Privacy versus accuracy")
+    ax.legend(fontsize=8)
+    fig.savefig(output / "accuracy.png", dpi=180)
+    plt.close(fig)
 
 
 if __name__ == "__main__":
